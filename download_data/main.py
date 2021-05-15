@@ -8,11 +8,25 @@ from models import Movie
 from config import BASE_URL, FAIL_RESPONSE
 from tqdm import tqdm
 
-def get_id_in_filename(filename: str):
+def get_id_in_filename(filename: str) -> int:
+    """get id from filename with name as following
+    filename: /path/to/movie_data_{id}.json
+
+    Args:
+        filename (str): filename where is a part of the data
+
+    Returns:
+        [int]: id retrieved from filename
+    """
     _id = filename.split(".")[0].split("_")[-1]
     return int(_id)
     
 def delete_not_used_files(data_path: str):
+    """delete not used files from data directory
+
+    Args:
+        data_path (str): data directory where the files are stored
+    """
     files_paths = [os.path.join(data_path, name_file)
                    for name_file in os.listdir(data_path)]
     if len(files_paths) == 0: return
@@ -22,7 +36,15 @@ def delete_not_used_files(data_path: str):
                        files_paths):
         os.remove(file)
         
-def directory_resolve_callback(data_path: str):
+def directory_resolve_callback(data_path: str) -> str:
+    """Create directory path if it doesn't exist.
+
+    Args:
+        data_path (str): string data path
+
+    Returns:
+        [str]: string data path validated
+    """
     if not os.path.exists(data_path):
         os.makedirs(data_path)
     return data_path

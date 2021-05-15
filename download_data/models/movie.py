@@ -8,13 +8,13 @@ class Movie:
             setattr(self, key, value)
     
     @classmethod
-    def request_movie_by_id(cls, host:str, api_key:str, _id:int):
+    def request_movie_by_id(cls, host:str, api_key:str, _id:int) -> 'Movie':
         url = host + "/3/movie/" + str(_id)
         movie_data = cls.make_request(method="GET", url=url, api_key=api_key)
         return cls(**movie_data)
     
     @classmethod
-    def request_last_movie(cls, host:str, api_key:str):
+    def request_last_movie(cls, host:str, api_key:str) -> 'Movie':
         url = host + "/3/movie/latest"
         movie_data = cls.make_request(method="GET", url=url, api_key=api_key)
         return cls(**movie_data)
