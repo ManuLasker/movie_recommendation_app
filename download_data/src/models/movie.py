@@ -62,7 +62,11 @@ class Movie:
     def json(self)->Dict[str, Any]:
         return self.__dict__
     
-    
+    def save(self, data_path:str)->None:
+        json.dump(self.json(),
+                      open(os.path.join(data_path, f"movie_data_{self.id}.json"), "w"),
+                      indent=True)
+        
 class MovieListJson:
     def __init__(self):
         self.movies:List[Dict[str, Any]] = []
@@ -71,12 +75,6 @@ class MovieListJson:
         self.movies.append(movie)
         
     def save(self, data_path:str):
-        _id = self.get_last_movie_id()
-        if  _id % 10 == 0:
-            json.dump(self.movies,
-                      open(os.path.join(data_path, f"movie_data_{_id}.json"), "w"),
-                      indent=True)
-            delete_not_used_files(data_path)
-        
-    def get_last_movie_id(self) -> int:
-        return self.movies[-1]["id"]
+        json.dump(self.movies,
+                    open(os.path.join(data_path, f"movie_data_complete.json"), "w"))
+        # delete_not_used_files(data_path)
