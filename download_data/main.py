@@ -6,7 +6,7 @@ from queue import Queue
 from src.worker import DownloadWorker
 from src.config import BASE_URL, FAIL_RESPONSE
 from src.models import Movie
-from tqdm import tqdm
+from tqdm.auto import tqdm
 from src.log import main_logger
 
         
