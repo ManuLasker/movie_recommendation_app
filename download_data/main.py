@@ -28,8 +28,6 @@ def main(api_key: str = typer.Argument(...,
          data_path: str = typer.Option("data",
                                        help="directory path where you want to save the data to.",
                                        callback=directory_resolve_callback),
-         total: int = typer.Option(200000,
-                                   help="number of movies you want to download"),
          number_threads: int = typer.Option(cpu_count(),
                                            help="number of threads")) -> None:
     # create a queue to commnucate with the worker thread
@@ -43,6 +41,7 @@ def main(api_key: str = typer.Argument(...,
         
     # Put the tasks into the queue as a tuple
     # main bar
+    total = Movie.request_last_movie(host=BASE_URL, api_key=api_key).id
     main_bar = tqdm(desc="Queuing movie id:",
                     total=total,
                     position=0)
