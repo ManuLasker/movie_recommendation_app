@@ -1,40 +1,13 @@
 import typer
-import time
-import json
 import os
-from functools import reduce
-# from log import main_logger, thread_logger
-from models import Movie
-from config import BASE_URL, FAIL_RESPONSE
+from queue import Queue
+from src.worker import DownloadWorker
+from src.config import BASE_URL, FAIL_RESPONSE
+from src.models import Movie
+
 from tqdm import tqdm
+from src.log import main_logger
 
-def get_id_in_filename(filename: str) -> int:
-    """get id from filename with name as following
-    filename: /path/to/movie_data_{id}.json
-
-    Args:
-        filename (str): filename where is a part of the data
-
-    Returns:
-        [int]: id retrieved from filename
-    """
-    _id = filename.split(".")[0].split("_")[-1]
-    return int(_id)
-    
-def delete_not_used_files(data_path: str):
-    """delete not used files from data directory
-
-    Args:
-        data_path (str): data directory where the files are stored
-    """
-    files_paths = [os.path.join(data_path, name_file)
-                   for name_file in os.listdir(data_path)]
-    if len(files_paths) == 0: return
-    max_id = reduce(lambda id_1, id_2: max(id_1, id_2),
-                     map(get_id_in_filename, files_paths))
-    for file in filter(lambda filename: get_id_in_filename(filename) < max_id,
-                       files_paths):
-        os.remove(file)
         
 def directory_resolve_callback(data_path: str) -> str:
     """Create directory path if it doesn't exist.
@@ -53,26 +26,36 @@ def main(api_key: str = typer.Argument(...,
                                        help="tmdb api_key for the user"),
          data_path: str = typer.Option("data",
                                        help="directory path where you want to save the data to.",
-                                       callback=directory_resolve_callback)) -> None:
-    """Downdload all the movies from tmdb and save it to a json file.
-    """
-    last_movie = Movie.request_last_movie(host=BASE_URL, api_key=api_key)
-    movies = []
-    for _id in tqdm(range(0, last_movie.id), desc="Downloading movies"):
-        movie = Movie.request_movie_by_id(host=BASE_URL, api_key=api_key, _id=_id)
+                                       callback=directory_resolve_callback),
+         total: int = typer.Option(200000,
+                                   help="number of movies you want to download")) -> None:
+    # create a queue to commnucate with the worker thread
+    queue = Queue()
+    # crate 4 worker threads
+    for num_worker in range(4):
+        worker = DownloadWorker(queue)
+        # Setting daemon to True will let the main thread exit even though the workers are blocking
+        worker.daemon = True
+        worker.start()
         
-        try:
-            movie_id = movie.id # not correct movie
-        except Exception as error:
-            assert movie.json() == FAIL_RESPONSE # supervise that is FAIL_RESPONSE
-            continue
-            
-        movies.append(movie.json())
-        if _id % 5 == 0:
-            json.dump(movies, open(f"{data_path}/movie_data_{_id}.json", "w"),
-                      indent=True)
-            delete_not_used_files(data_path)
-            time.sleep(10)
-
+    # Put the tasks into the queue as a tuple
+    # main bar
+    main_bar = tqdm(desc="Queuing movie id:",
+                    total=total,
+                    position=0)
+    # thread bar
+    thread_bar = tqdm(desc="Downloading movie",
+                      total=total,
+                      position=1,
+                      leave=True)
+    
+    for _id in range(0, Movie.request_last_movie(host=BASE_URL, api_key=api_key).id):
+        queue.put((BASE_URL, _id, api_key, data_path, thread_bar))
+        main_bar.set_postfix(movie_id=_id)
+        main_bar.update()
+    # causes the main thread to wait for the queue to finish processing all the tasks
+    queue.join()
+    main_logger.info("process finished!")
+        
 if __name__ == "__main__":
     typer.run(main)
