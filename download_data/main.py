@@ -61,7 +61,8 @@ def main(api_key: str = typer.Argument(...,
         main_bar.update()
     # causes the main thread to wait for the queue to finish processing all the tasks
     queue.join()
-    # save all 
+    # save all
+    main_logger.info("saving all the data to {}".format(data_path))
     save_all(data_path)
     main_logger.info("process finished!")
         
