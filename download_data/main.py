@@ -1,10 +1,11 @@
 import typer
 import os
+
+from multiprocessing import cpu_count
 from queue import Queue
 from src.worker import DownloadWorker
 from src.config import BASE_URL, FAIL_RESPONSE
 from src.models import Movie
-
 from tqdm import tqdm
 from src.log import main_logger
 
@@ -28,11 +29,13 @@ def main(api_key: str = typer.Argument(...,
                                        help="directory path where you want to save the data to.",
                                        callback=directory_resolve_callback),
          total: int = typer.Option(200000,
-                                   help="number of movies you want to download")) -> None:
+                                   help="number of movies you want to download"),
+         number_threads: int = typer.Option(cpu_count(),
+                                           help="number of threads")) -> None:
     # create a queue to commnucate with the worker thread
     queue = Queue()
-    # crate 4 worker threads
-    for num_worker in range(4):
+    # crate worker threads
+    for num_worker in range(number_threads):
         worker = DownloadWorker(queue)
         # Setting daemon to True will let the main thread exit even though the workers are blocking
         worker.daemon = True
