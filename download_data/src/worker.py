@@ -21,7 +21,7 @@ class DownloadWorker(Thread):
                 movie = Movie.request_movie_by_id(host=host, _id=_id, api_key=api_key)
                 if getattr(movie, "id", None):
                     movie_list.append(movie.json())
-                    movie.save(data_path=data_path)
+                    # movie.save(data_path=data_path)
                 else:
                     bad_request_movie += 1
             finally:

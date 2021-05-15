@@ -3,7 +3,7 @@ import os
 
 from multiprocessing import cpu_count
 from queue import Queue
-from src.worker import DownloadWorker
+from src.worker import DownloadWorker, save_all
 from src.config import BASE_URL, FAIL_RESPONSE
 from src.models import Movie
 from tqdm.auto import tqdm
@@ -44,6 +44,7 @@ def main(api_key: str = typer.Argument(...,
     # Put the tasks into the queue as a tuple
     # main bar
     last_id = Movie.request_last_movie(host=BASE_URL, api_key=api_key).id
+    last_id = 50
     all_ids = range(init_id, last_id + 1)
     main_bar = tqdm(desc="Queuing movie id:",
                     total=len(all_ids),
@@ -60,6 +61,8 @@ def main(api_key: str = typer.Argument(...,
         main_bar.update()
     # causes the main thread to wait for the queue to finish processing all the tasks
     queue.join()
+    # save all 
+    save_all(data_path)
     main_logger.info("process finished!")
         
 if __name__ == "__main__":
