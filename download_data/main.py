@@ -44,7 +44,6 @@ def main(api_key: str = typer.Argument(...,
     # Put the tasks into the queue as a tuple
     # main bar
     last_id = Movie.request_last_movie(host=BASE_URL, api_key=api_key).id
-    last_id = 50
     all_ids = range(init_id, last_id + 1)
     main_bar = tqdm(desc="Queuing movie id:",
                     total=len(all_ids),
