@@ -29,7 +29,9 @@ def main(api_key: str = typer.Argument(...,
                                        help="directory path where you want to save the data to.",
                                        callback=directory_resolve_callback),
          number_threads: int = typer.Option(cpu_count(),
-                                           help="number of threads")) -> None:
+                                           help="number of threads"),
+         init_id: int  = typer.Option(0,
+                                      help="initial id to begin iteration")) -> None:
     # create a queue to commnucate with the worker thread
     queue = Queue()
     # crate worker threads
@@ -41,17 +43,18 @@ def main(api_key: str = typer.Argument(...,
         
     # Put the tasks into the queue as a tuple
     # main bar
-    total = Movie.request_last_movie(host=BASE_URL, api_key=api_key).id
+    last_id = Movie.request_last_movie(host=BASE_URL, api_key=api_key).id
+    all_ids = range(init_id, last_id + 1)
     main_bar = tqdm(desc="Queuing movie id:",
-                    total=total,
+                    total=len(all_ids),
                     position=0)
     # thread bar
     thread_bar = tqdm(desc="Downloading movie",
-                      total=total,
+                      total=len(all_ids),
                       position=1,
                       leave=True)
     
-    for _id in range(0, Movie.request_last_movie(host=BASE_URL, api_key=api_key).id):
+    for _id in all_ids:
         queue.put((BASE_URL, _id, api_key, data_path, thread_bar))
         main_bar.set_postfix(movie_id=_id)
         main_bar.update()
