@@ -74,7 +74,11 @@ class MovieListJson:
     def append(self, movie:Dict[str, Any]):
         self.movies.append(movie)
         
-    def save(self, data_path:str):
-        json.dump(self.movies,
-                    open(os.path.join(data_path, f"movie_data_complete.json"), "w"))
+    def save(self, data_path:str, name:str = None):
+        if not name:
+            json.dump(self.movies,
+                        open(os.path.join(data_path, f"movie_data_complete.json"), "w"))
+        else:
+            json.dump(self.movies,
+                        open(os.path.join(data_path, f"movie_data_{name}.json"), "w"))
         # delete_not_used_files(data_path)

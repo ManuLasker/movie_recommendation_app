@@ -25,7 +25,8 @@ class DownloadWorker(Thread):
                 else:
                     bad_request_movie += 1
             finally:
+                save_all(data_path, self.name)
                 self.queue.task_done()
                 
-def save_all(data_path:str):
-    movie_list.save(data_path)
+def save_all(data_path:str, name:str=None):
+    movie_list.save(data_path, name)
