@@ -24,8 +24,10 @@ class DownloadWorker(Thread):
                     movie.save(data_path=data_path)
                 else:
                     bad_request_movie += 1
-            finally:
+            except Exception as e:
+                thread_logger.info(f"There was an error {e}")
                 save_all(data_path, self.name)
+            finally:
                 self.queue.task_done()
                 
 def save_all(data_path:str, name:str=None):
